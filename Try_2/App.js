@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { StyleSheet, Text, View, TextInput } from 'react-native';
 import Weather from './components/Weather';
 import { observable, computed, action } from "mobx";
-import { observer } from 'mobx-react-native';
+import { observer } from 'mobx-react';
 
 
 import { API_KEY } from './utils/WeatherAPIKey';
@@ -19,63 +19,49 @@ class WeatherData {
     this.location = location;
     this.fetch()
   }
-
-  fetchWeather = action() => {
-    fetch(
-      `http://api.openweathermap.org/data/2.5/weather?&q=${this.location}&APPID=${API_KEY}&units=metric`
-      // `http://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&APPID=${API_KEY}&units=metric`
-    );
+  
+  fetch() {
+    window.fetch(`http://api.openweathermap.org/data/2.5/weather?APPIDAPPID=${API_KEY}&q=${this.location}`)
       .then(res => res.json())
-      .then(action(json => {
-          this.temperature: json.main.temp;
-          this.pressure_here: json.main.pressure;
-          this.humidity_here: json.main.humidity;
-          this.wind: json.wind.speed;          
-          this.weatherCondition: json.weather[0].main;
+      .then(action(json => { 
+          this.temperature = json.main.temp;
+          this.pressure_here = json.main.pressure;
+          this.humidity_here = json.main.humidity;
+          this.wind = json.wind.speed;          
+          this.weatherCondition = json.weather[0].main;
           // this.isLoading: true;
       }));
-  }
+  }  
 }
 
 observer(
   class UselessTextInput extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { text: 'enter some city' };
+  
     input = observable('');
-  }
 
-  render() {
-    return (
-      <View>
-      <TextInput
-        style={{height: 40, borderColor: 'gray', borderWidth: 1}}
-        onChangeText={this.onChange}
-        value={this.input}
-      />
-      <Button
-        onPress={() => {
-          this.onSubmit
-        }}
-        title="See Weather"
-      />
-      </View>
-    );
-  }
-
-  onChange = action(e) => {
-      this.input = e.target.value
-  }
-  onSubmit = action() => {
-      this.props.temperatures.push(new WeatherData(this.input))
-      this.input = ''
+    render() {
+      return (
+        <View>
+        <TextInput
+          style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+          onChangeText={ action(e => { this.input = e.target.value }) }
+          value={this.input}
+        />
+        <Button
+          onPress={ action(() => {
+            this.props.temperatures.push(new WeatherData(this.input))
+            this.input = ''
+          }) }
+          title="See Weather"
+        />
+        </View>
+      );
     }
-}
 
-  )
+  }
+)
 
 const temps = observable([])
-
 
 const PreTemperature = observer(
   ({ temperatures }) => (
@@ -85,28 +71,26 @@ const PreTemperature = observer(
     )
   )
 
-const PreTemperatureView = observer(
-  render() {
-    const t = this.props.temperature;
-    return (
-      <View style={styles.container}>
+observer(
+    class PreTemperatureView extends Component {
+      render() {
+        const t = this.props.temperature;
+        return(
+          <View>
             <Text>{t.temperature}</Text>
-        {/*
-        {t.isLoading ? (<Text>loading...</Text>) : (
-            <View>
-            <Text>{t.temperature}</Text>
-            
+            {/*
                 <Weather weather={t.weatherCondition} 
                  temperature={t.temperature} 
                  pressure_here={t.pressure_here} 
                  humidity_here={t.humidity_here} 
                  wind={t.wind}/>
-            </View>)
-        } */}
-      </View>)})  
+            */}            
+          </View>
+          )
+      }
+    }
+)
 
-
-observer(
   class App extends React.Component {
     render() {
       return(
@@ -116,7 +100,6 @@ observer(
         )
     }
   }
-)
 
 export default App;
 
