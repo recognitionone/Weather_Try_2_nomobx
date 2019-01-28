@@ -7,7 +7,13 @@ import { API_KEY } from './utils/WeatherAPIKey';
 export default class App extends React.Component {
   state = {
     isLoading: true,
+
     temperature: 0,
+     temperature: 0,
+   pressure_here: 0,
+   humidity_here: 0,
+   wind: 0,
+
     weatherCondition: null,
     error: null
 };
@@ -34,6 +40,10 @@ componentDidMount() {
         // console.log(json);
         this.setState({
           temperature: json.main.temp,
+          pressure_here: json.main.pressure,
+          humidity_here: json.main.humidity,
+          wind: json.wind.speed, 
+
           weatherCondition: json.weather[0].main,
           isLoading: false
           });
@@ -41,7 +51,7 @@ componentDidMount() {
 }
 
   render() {
-    const { isLoading, weatherCondition, temperature } = this.state;
+    const { isLoading, weatherCondition, temperature, pressure_here, humidity_here, wind } = this.state;
     return (
       <View style={styles.container}>
         { isLoading ? (
@@ -52,7 +62,10 @@ componentDidMount() {
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}> The Weather</Text>
 
-          <Weather weather={weatherCondition} temperature={temperature} />
+          <Weather weather={weatherCondition} temperature={temperature}
+                pressure_here={pressure_here} 
+                humidity_here={humidity_here} 
+                wind={wind}/>          
           </View>
         ) }
       </View>
