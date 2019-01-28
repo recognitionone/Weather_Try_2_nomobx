@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TextInput } from 'react-native';
 import Weather from './components/Weather';
 import { observable, computed, action } from "mobx";
 import { observer } from 'mobx-react-native';
@@ -15,57 +15,67 @@ class WeatherData {
   wind = observable(0);
   weatherCondition = observable(null);
 
-  isLoading = observable(true);
-
-  error:  = observable(null);
-};
-
-componentDidMount() {
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        this.fetchWeather(position.coords.latitude, position.coords.longitude);
-      },
-      error => {
-        this.setState({
-          error: 'Error Gettig Weather Condtions'
-        });
-      }
-    );
+  constructor(location) {
+    this.location = location;
+    this.fetch()
   }
 
-  fetchWeather = action(lat = 25, lon = 25) {
+  fetchWeather = action() => {
     fetch(
-      `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&APPID=${API_KEY}&units=metric`
+      `http://api.openweathermap.org/data/2.5/weather?&q=${this.location}&APPID=${API_KEY}&units=metric`
       // `http://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&APPID=${API_KEY}&units=metric`
-    )
+    );
       .then(res => res.json())
       .then(action(json => {
-          this.temperature: json.main.temp,
-          this.pressure_here: json.main.pressure,
-          this.humidity_here: json.main.humidity,
-          this.wind: json.wind.speed,          
-          this.weatherCondition: json.weather[0].main,
-
-          this.isLoading: false
+          this.temperature: json.main.temp;
+          this.pressure_here: json.main.pressure;
+          this.humidity_here: json.main.humidity;
+          this.wind: json.wind.speed;          
+          this.weatherCondition: json.weather[0].main;
+          // this.isLoading: true;
       }));
   }
 }
 
+observer(
+  class UselessTextInput extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { text: 'enter some city' };
+    input = observable('');
+  }
+
+  render() {
+    return (
+      <View>
+      <TextInput
+        style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+        onChangeText={this.onChange}
+        value={this.input}
+      />
+      <Button
+        onPress={() => {
+          this.onSubmit
+        }}
+        title="See Weather"
+      />
+      </View>
+    );
+  }
+
+  onChange = action(e) => {
+      this.input = e.target.value
+  }
+  onSubmit = action() => {
+      this.props.temperatures.push(new WeatherData(this.input))
+      this.input = ''
+    }
+}
+
+  )
+
 const temps = observable([])
 
-observer(
-  class TemperatureInput extends Component {
-    render() {
-      return (
-        <Button onClick={this.onSubmit}> See Weather </Button>
-        )
-    }
-
-    onSubmit = action() => {
-      this.props.temperatures.push(new WeatherData())
-    }
-  }
-)
 
 const PreTemperature = observer(
   ({ temperatures }) => (
@@ -80,20 +90,19 @@ const PreTemperatureView = observer(
     const t = this.props.temperature;
     return (
       <View style={styles.container}>
-        {t.isLoading ? (
-            <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Fetching The Weather</Text>
-            </View>
-          ) : (
+            <Text>{t.temperature}</Text>
+        {/*
+        {t.isLoading ? (<Text>loading...</Text>) : (
             <View>
-              <Weather 
-                weather={t.weatherCondition} 
-                temperature={t.temperature} 
-                pressure_here={t.pressure_here} 
-                humidity_here={t.humidity_here} 
-                wind={t.wind}/>
+            <Text>{t.temperature}</Text>
+            
+                <Weather weather={t.weatherCondition} 
+                 temperature={t.temperature} 
+                 pressure_here={t.pressure_here} 
+                 humidity_here={t.humidity_here} 
+                 wind={t.wind}/>
             </View>)
-        }
+        } */}
       </View>)})  
 
 
