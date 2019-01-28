@@ -50,9 +50,7 @@ componentDidMount() {
           </View>
         ) : (
           <View style={styles.loadingContainer}>
-            <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}> The Weather</Text>
-          </View>
 
           <Weather weather={weatherCondition} temperature={temperature} />
           </View>
